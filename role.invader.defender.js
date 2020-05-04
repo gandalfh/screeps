@@ -28,10 +28,14 @@ module.exports = {
                 return 'empire.under.attack';
             }
 
-            let invaderCores = room.find(FIND_HOSTILE_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_INVADER_CORE});
+            let invaderCores = creep.room.find(FIND_HOSTILE_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_INVADER_CORE});
             if (invaderCores.length > 0) {
-                if (creep.attack(invaderCores[0]) === ERR_NOT_IN_RANGE) {
+                let status = creep.attack(invaderCores[0]);
+                if (status === ERR_NOT_IN_RANGE) {
                     creep.moveTo(invaderCores[0]);
+                }
+                else {
+                    console.log('attack status = ' + status);
                 }
                 return 'invader.core.detected';
             }
