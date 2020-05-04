@@ -37,6 +37,8 @@ var loopIndex = 0;
 var atWar = false;
 let empireUnderAttack = false;
 
+let invaderCoreDetected = false;
+
 let controllerMax;
 
 module.exports.loop = function () {
@@ -60,7 +62,7 @@ module.exports.loop = function () {
     }
 
     if (loopIndex % 10 === 0) {
-        spawnLogic.run(atWar, empireUnderAttack);
+        spawnLogic.run(atWar, empireUnderAttack, invaderCoreDetected);
     }
     loopIndex++;
     
@@ -159,7 +161,12 @@ module.exports.loop = function () {
         }
 
         if (creep.memory.role === 'harvester.invader') {
-            if (roleHarvesterInvader.run(creep, empireUnderAttack) === 'empire.under.attack') {
+            let status = roleHarvesterInvader.run(creep, empireUnderAttack);
+
+            if (status === 'invader.core.detected') {
+                invaderCoreDetected = true;
+            }
+            if (status === 'empire.under.attack') {
                 empireUnderAttack = true;
             }
 

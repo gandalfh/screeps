@@ -17,7 +17,7 @@ module.exports = {
         }
         return {creeps: creeps, success: false};
     },
-    run: function(atWar, empireUnderAttack) {
+    run: function(atWar, empireUnderAttack, invaderCoreDetected) {
         let room = Game.spawns.FraggsHouse.room;
         
         let extensionHarvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester.extension');
@@ -38,7 +38,7 @@ module.exports = {
             
             this.spawnCreep('InvaderBuilder', 'builder.invader', 0, [WORK,WORK,WORK,CARRY,CARRY,MOVE]);
 
-            if(empireUnderAttack) {
+            if(empireUnderAttack || invaderCoreDetected) {
                 this.spawnCreep('InvaderDefender', 'invader.defender', 4, [ATTACK,ATTACK,ATTACK,ATTACK,TOUGH,MOVE]);
             }
             

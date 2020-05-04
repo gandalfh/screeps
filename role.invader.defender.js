@@ -27,6 +27,14 @@ module.exports = {
                 }
                 return 'empire.under.attack';
             }
+
+            let invaderCores = room.find(FIND_HOSTILE_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_INVADER_CORE});
+            if (invaderCores.length > 0) {
+                if (creep.attack(invaderCores[0]) === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(invaderCores[0]);
+                }
+                return 'invader.core.detected';
+            }
             else {
                 creep.memory.doNotHeal = true;
                 if (creep.room === Game.spawns.FraggsHouse.room) {
