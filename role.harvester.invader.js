@@ -112,7 +112,7 @@ var roleHarvesterInvader = {
         
         if (creep.room !== Game.spawns.FraggsHouse.room) {
 
-            let invaderCores = room.find(FIND_HOSTILE_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_INVADER_CORE});
+            let invaderCores = creep.room.find(FIND_HOSTILE_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_INVADER_CORE});
             if (invaderCores.length > 0) {
                 return 'invader.core.detected';
             }
