@@ -54,18 +54,27 @@ module.exports.loop = function () {
             rooms: [],
         };
 
-        for(let room in game.rooms) {
+        for(let roomName in Game.rooms) {
+            let room = Game.rooms[roomName];
             if (roomStrategies.rooms[room.name]) {
+                let storageUnits = room.find(FIND_STRUCTURES, {
+                    filter: (structure) => {
+                        return structure.structureType == STRUCTURE_STORAGE || structure.structureType == STRUCTURE_CONTAINER;
+                    }
+                });
                 let roomData = {
                     roomName: room.name,
                     atWar: false,
                     empireUnderAttack: false,
                     invaderCoreDetected: false,
                     strategy: roomStrategies.rooms[room.name].strategy,
+                    spawns: [],
+                    hasStorage: storageUnits.length > 0,
                 };
-                for(let spawn in Game.spawns) {
+                for(let spawnName in Game.spawns) {
+                    let spawn = Game.spawns[spawnName];
                     if (spawn.room === room) {
-                        roomData.spawns.push({name: spawn.name})
+                        roomData.spawns.push({name: spawnName})
                     }
                 }
                 context.rooms.push(roomData);
@@ -84,6 +93,9 @@ module.exports.loop = function () {
 
     for(let roomIndex = 0; roomIndex < context.rooms.length; roomIndex++) {
         let roomData = context.rooms[roomIndex];
+        let atWar = roomData.atWar;
+        let empireUnderAttack = roomData.empireUnderAttack;
+        let invaderCoreDetected = roomData.invaderCoreDetected;
         let room = Game.rooms[roomData.roomName];
         var enemies = room.find(FIND_HOSTILE_CREEPS);
             

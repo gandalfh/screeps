@@ -32,7 +32,9 @@ module.exports = {
         
         let harvesters = harvesterResult.creeps;
         
-        this.spawnCreep(room, roomData, 'Transferer', 'storage.transfer', 1, [WORK,CARRY,CARRY,MOVE]);
+        if (roomData.hasStorage) {
+            this.spawnCreep(room, roomData, 'Transferer', 'storage.transfer', 1, [WORK,CARRY,CARRY,MOVE]);
+        }
 
         if (harvesters.length > minHarvesters) {
             
