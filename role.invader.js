@@ -14,9 +14,15 @@ module.exports = {
         }
 
         if (creep.memory.state === 'reservecontroller') {
-            let status = creep.reserveController(creep.room.controller);    
+            let status = creep.claimController(creep.room.controller);
             if (status === ERR_NOT_IN_RANGE) {
                 creep.moveTo(creep.room.controller);
+            }
+            else {
+                status = creep.reserveController(creep.room.controller);    
+                if (status === ERR_NOT_IN_RANGE) {
+                    creep.moveTo(creep.room.controller);
+                }
             }
         }
         
