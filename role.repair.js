@@ -6,7 +6,7 @@ let repairTargets = {
 
 
 module.exports = {
-    run: function(creep) {
+    run: function(creep, roomData, room) {
         let target;
         
         for(let targetId in repairTargets) {
@@ -58,7 +58,16 @@ module.exports = {
                 }
             }
             else {
-                creep.moveTo(Game.flags.Standby,  {visualizePathStyle: {stroke: '#ffaa00'}});
+                let source = creep.pos.findClosestByRange(FIND_SOURCES);
+                
+                if (source) {
+                    if(creep.harvest(source) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(source, {visualizePathStyle: {stroke: '#ffaa00'}});
+                    }
+                }
+                else {
+                    creep.moveTo(Game.flags[roomData.roomName + '.Standby'],  {visualizePathStyle: {stroke: '#ffaa00'}});
+                }
             }
         }
         
@@ -90,6 +99,13 @@ module.exports = {
             
             if (target === null) {
                 target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    filter: (s) => (s.structureType === STRUCTURE_ROAD) && (s.hits < 500) && !repairTargets[s.id]
+                });                
+            }            
+            
+            
+            if (target === null) {
+                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                     filter: (s) => (s.structureType === STRUCTURE_ROAD) && (s.hits < s.hitsMax*.10) && !repairTargets[s.id]
                 });                
             }            
@@ -114,6 +130,12 @@ module.exports = {
             
             if (target === null) {
                 target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    filter: (s) => (s.structureType === STRUCTURE_WALL) && (s.hits < 100000) && !repairTargets[s.id]
+                });                
+            }             
+            
+            if (target === null) {
+                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                     filter: (s) => (s.hits / s.hitsMax < percentage)  && !repairTargets[s.id]
                 });
             }
@@ -133,7 +155,7 @@ module.exports = {
                 if (percentage > 1) {
                     percentage = 0.000003;
                 }
-                creep.moveTo(Game.flags.Standby,  {visualizePathStyle: {stroke: '#ffaa00'}});
+                creep.moveTo(Game.flags[roomData.roomName + '.Standby'],  {visualizePathStyle: {stroke: '#ffaa00'}});
             }
         }
     }

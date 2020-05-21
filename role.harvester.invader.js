@@ -117,7 +117,7 @@ var roleHarvesterInvader = {
                 return 'invader.core.detected';
             }
 
-            var target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+            var target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: (c) => !roomData.allies[c.owner.username]});
             if (target) {
                 return 'empire.under.attack';
             }

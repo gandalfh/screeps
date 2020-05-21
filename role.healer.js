@@ -1,12 +1,13 @@
 
 module.exports = {
-    run: function(creep, empireUnderAttack) {
-        
-        if (empireUnderAttack && creep.room === Game.spawns.FraggsHouse.room) {
-            creep.moveTo(Game.flags.InvasionFlag);
-        }
-        else if (!empireUnderAttack && creep.room !== Game.spawns.FraggsHouse.room) {
-            creep.moveTo(Game.flags.EnergyStealerFlag);
+    run: function(creep, roomData, room) {
+        if (roomData.invasion) {
+            if (roomData.empireUnderAttack && creep.room === Game.spawns.FraggsHouse.room) {
+                creep.moveTo(Game.flags.InvasionFlag);
+            }
+            else if (!roomData.empireUnderAttack && creep.room !== Game.spawns.FraggsHouse.room) {
+                creep.moveTo(Game.flags.EnergyStealerFlag);
+            }
         }
         else {
             const target = creep.pos.findClosestByRange(FIND_MY_CREEPS, {
@@ -24,7 +25,7 @@ module.exports = {
                 }
             }
             else {
-                creep.moveTo(Game.flags.HealerRally, {visualizePathStyle: {stroke: '#ffffff'}});
+                creep.moveTo(Game.flags[creep.memory.birthRoom + '.HealerRally'], {visualizePathStyle: {stroke: '#ffffff'}});
             }
         }
     }

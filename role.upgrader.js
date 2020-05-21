@@ -1,18 +1,23 @@
 var roleUpgrader = {
 
     /** @param {Creep} creep **/
-    run: function(creep) {
+    run: function(creep, roomData, room) {
         if (!creep.memory.state) {
             creep.memory.state = 'staging';
         }
         if (creep.memory.state === 'staging') {
-            var pathLen = creep.pos.getRangeTo(Game.flags.UpgradeFrom);
-            if (pathLen > 2) {
-                creep.moveTo(Game.flags.UpgradeFrom);    
-                creep.memory.state = 'staging';
+            if (!Game.flags[roomData.roomName + '.UpgradeFrom']) {
+                creep.memory.state = 'upgrading';
             }
             else {
-                creep.memory.state = 'upgrading';
+                var pathLen = creep.pos.getRangeTo(Game.flags[roomData.roomName + '.UpgradeFrom']);
+                if (pathLen > 2) {
+                    creep.moveTo(Game.flags[roomData.roomName + '.UpgradeFrom']);    
+                    creep.memory.state = 'staging';
+                }
+                else {
+                    creep.memory.state = 'upgrading';
+                }
             }
         }
         

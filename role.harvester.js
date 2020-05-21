@@ -1,7 +1,7 @@
 var roleHarvester = {
 
     /** @param {Creep} creep **/
-    run: function(creep) {
+    run: function(creep, roomData, room) {
         if (!creep.memory.state) {
             creep.memory.state = 'harvesting';
         }
@@ -71,6 +71,15 @@ var roleHarvester = {
                 });
             }
             
+            if (targets.length === 0) {
+                targets = creep.room.find(FIND_STRUCTURES, {
+                        filter: (structure) => {
+                            return (structure.structureType == STRUCTURE_CONTAINER) && 
+                                    structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+                        }
+                });
+            }            
+            
             var target;
             if(targets.length > 0) {
                 target = targets[0];
@@ -81,7 +90,7 @@ var roleHarvester = {
                 }
             }
             else {
-                creep.moveTo(Game.flags.Harvesters);
+                creep.moveTo(Game.flags[roomData.roomName + '.Harvesters']);
             }
         }
 	}

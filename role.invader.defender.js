@@ -16,7 +16,7 @@ module.exports = {
         }        
         
         if (creep.memory.state === 'fight') {
-            let target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+            let target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: (c) => !roomData.allies[c.owner.username]});
             if (target) {
                 creep.memory.doNotHeal = false;
                 if (creep.rangedAttack(target) === ERR_NOT_IN_RANGE) {
@@ -27,15 +27,19 @@ module.exports = {
                 }
                 return 'empire.under.attack';
             }
-
+            
             let invaderCores = creep.room.find(FIND_HOSTILE_STRUCTURES, {filter: (s) => s.structureType == STRUCTURE_INVADER_CORE});
             if (invaderCores.length > 0) {
+                console.log('fighting core')
                 let status = creep.attack(invaderCores[0]);
                 if (status === ERR_NOT_IN_RANGE) {
                     creep.moveTo(invaderCores[0]);
                 }
                 else {
-                    console.log('attack status = ' + status);
+                    status = creep.rangedAttack(invaderCores[0]);
+                    if (status === ERR_NOT_IN_RANGE) {
+                        creep.moveTo(invaderCores[0]);
+                    }
                 }
                 return 'invader.core.detected';
             }

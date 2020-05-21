@@ -39,10 +39,36 @@ let myUserName = "FraggDoubt";
 
 let context;
 
+let allies = {
+    Stryder: true,
+}
+
 let roomStrategies = {
     rooms: { 
-        'E45S13': { strategy: 'owned', invasion: true, },
-        'E44S13': { strategy: 'invade', invasion: false, },
+        'E45S13': { 
+            strategy: 'owned', 
+            invasion: false, 
+            minHarvesters: 3, 
+            maxHarvesters: 4, 
+            maxExtensionHarvesters: 4,
+            maxRepairers: 4,
+            maxStorageExtensions: 1,
+            maxStorageTransferers: 1,
+            maxUpgraderStorage: 1,
+            maxUpgraders: 6,
+            debug: 0 },
+        'E44S13': { 
+            strategy: 'owned', 
+            invasion: false, 
+            minHarvesters: 3, 
+            maxHarvesters: 5, 
+            maxExtensionHarvesters: 1,
+            maxRepairers: 2,
+            maxStorageExtensions: 0,
+            maxStorageTransferers: 1,
+            maxUpgraderStorage: 0,
+            maxUpgraders: 4,
+            debug: 1 },
     },
 };
 
@@ -62,12 +88,25 @@ module.exports.loop = function () {
                         return structure.structureType == STRUCTURE_STORAGE || structure.structureType == STRUCTURE_CONTAINER;
                     }
                 });
+                let strategy = roomStrategies.rooms[room.name];
                 let roomData = {
                     roomName: room.name,
                     atWar: false,
                     empireUnderAttack: false,
-                    invaderCoreDetected: false,
-                    strategy: roomStrategies.rooms[room.name].strategy,
+                    invaderCoreDetected: true,
+                    minHarvesters: strategy.minHarvesters,
+                    maxHarvesters: strategy.maxHarvesters,
+                    maxExtensionHarvesters: strategy.maxExtensionHarvesters,
+                    maxRepairers: strategy.maxRepairers,
+                    maxStorageExtensions: strategy.maxStorageExtensions,
+                    maxUpgraderStorage: strategy.maxUpgraderStorage,
+                    maxUpgraders: strategy.maxUpgraders,
+                    maxStorageTransferers: strategy.maxStorageTransferers,
+                    invasion: strategy.invasion,
+                    strategy: strategy.strategy,
+                    allies: allies,
+                    debug: strategy.debug,
+                    controllerSafeModeCountDown: 20,
                     spawns: [],
                     hasStorage: storageUnits.length > 0,
                 };
@@ -78,6 +117,7 @@ module.exports.loop = function () {
                     }
                 }
                 context.rooms.push(roomData);
+                console.log('added room: ' + roomData.roomName);
             }
         }
     }
@@ -90,6 +130,8 @@ module.exports.loop = function () {
             loopIndex = 0;
         }
     }
+    
+
 
     for(let roomIndex = 0; roomIndex < context.rooms.length; roomIndex++) {
         let roomData = context.rooms[roomIndex];
@@ -97,7 +139,7 @@ module.exports.loop = function () {
         let empireUnderAttack = roomData.empireUnderAttack;
         let invaderCoreDetected = roomData.invaderCoreDetected;
         let room = Game.rooms[roomData.roomName];
-        var enemies = room.find(FIND_HOSTILE_CREEPS);
+        var enemies = room.find(FIND_HOSTILE_CREEPS, {filter: (c) => !roomData.allies[c.owner.username]});
             
         if (enemies.length > 0) {
             if (!atWar) {
@@ -119,41 +161,42 @@ module.exports.loop = function () {
         }
 
         if (loopIndex % 10 === 0) {
-            for(let i = 0; i < context.rooms.length; i++) {
-                spawnLogic.run(context, room, roomData, atWar, empireUnderAttack, invaderCoreDetected);
-            }
+            spawnLogic.run(context, room, roomData, atWar, empireUnderAttack, invaderCoreDetected);
         }
 
-        loopIndex++;        
         
-        safeModeLogic.run(context, room, atWar);
+        safeModeLogic.run(roomData, room);
 
         for(var name in Game.creeps) {
             var creep = Game.creeps[name];
+            
+            if (creep.memory.birthRoom !== roomData.roomName) {
+                continue;
+            }
 
             
             if(creep.memory.role == 'harvester') {
-                if (roleMainAll.run(creep)) {
-                    roleHarvester.run(creep);
+                if (roleMainAll.run(creep, roomData, room)) {
+                    roleHarvester.run(creep, roomData, room);
                 }
             }
             if(creep.memory.role == 'upgrader') {
-                if (roleMainAll.run(creep)) {
-                    roleUpgrader.run(creep);
+                if (roleMainAll.run(creep, roomData, room)) {
+                    roleUpgrader.run(creep, roomData, room);
                 }
             }
             if(creep.memory.role == 'builder') {
-                if (roleMainAll.run(creep)) {
-                    roleBuilder.run(creep);
+                if (roleMainAll.run(creep, roomData, room)) {
+                    roleBuilder.run(creep, roomData, room);
                 }
             }
             if(creep.memory.role == 'repairer') {
-                if (roleMainAll.run(creep)) {
-                    roleRepair.run(creep);
+                if (roleMainAll.run(creep, roomData, room)) {
+                    roleRepair.run(creep, roomData, room);
                 }
             }
             if(creep.memory.role == 'archer') {
-                roleArcher.run(creep);
+                roleArcher.run(creep, roomData, room);
             }
             if (creep.memory.role === 'invader') {
                 if (roleInvader.run(creep) === 'empire.under.attack') {
@@ -161,35 +204,35 @@ module.exports.loop = function () {
                 }
             }
             if (creep.memory.role === 'fighter.invader') {
-                roleFighterInvader.run(creep);
+                roleFighterInvader.run(creep, roomData, room);
             }
             
             if (creep.memory.role === 'harvester.extension') {
-                if (roleMainAll.run(creep)) {
-                    roleHarvesterExtension.run(creep);
+                if (roleMainAll.run(creep, roomData, room)) {
+                    roleHarvesterExtension.run(creep, roomData, room);
                 }
             }
             
             if (creep.memory.role === 'storage.extension') {
-                if (roleMainAll.run(creep)) {
-                    roleStorageExtensions.run(creep);
+                if (roleMainAll.run(creep, roomData, room)) {
+                    roleStorageExtensions.run(creep, roomData, room);
                 }
             }
             
             if (creep.memory.role === 'storage.transfer') {
-                if (roleMainAll.run(creep)) {
-                    roleStorageTransfer.run(creep);
+                if (roleMainAll.run(creep, roomData, room)) {
+                    roleStorageTransfer.run(creep, roomData, room);
                 }
             }
             
             if (creep.memory.role === 'upgrader.storage') {
-                if (roleMainAll.run(creep)) {
-                    roleUpgraderStorage.run(creep);
+                if (roleMainAll.run(creep, roomData, room)) {
+                    roleUpgraderStorage.run(creep, roomData, room);
                 }
             }
             
             if (creep.memory.role === 'invader.defender') {
-                if (roleInvaderDefender.run(creep) === 'all.is.calm')
+                if (roleInvaderDefender.run(creep, roomData, room) === 'all.is.calm')
                 {
                     empireUnderAttack = false;
                 }
@@ -212,17 +255,20 @@ module.exports.loop = function () {
             }        
             
             if (creep.memory.role === 'healer') {
-                roleHealer.run(creep, empireUnderAttack);
+                roleHealer.run(creep, roomData, room);
             }
             
             if (creep.memory.role === 'fighter') {
-                roleFighter.run(creep);
+                roleFighter.run(creep, roomData, room);
             }
             
             if (creep.memory.role === 'invader.repair') {
-                roleInvaderRepair.run(creep);
+                roleInvaderRepair.run(creep, roomData, room);
             }
         }
     }
+    
+    loopIndex++;        
+
     
 }

@@ -1,5 +1,5 @@
 module.exports = {
-    run: function(creep) {
+    run: function(creep, roomData, room) {
         let sources = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {
                     return (structure.structureType == STRUCTURE_CONTAINER) && 
@@ -41,7 +41,7 @@ module.exports = {
             }
         }
         else {
-            creep.moveTo(Game.flags.Harvesters);
+            creep.moveTo(Game.flags[roomData.roomName + '.Harvesters']);
         }
         
         

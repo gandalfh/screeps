@@ -1,6 +1,6 @@
 module.exports = {
-    run: function(creep) {
-        var target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+    run: function(creep, roomData, room) {
+        var target = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {filter: (c) => !roomData.allies[c.owner.username]});
         
         if (!creep.memory.deployTargetId) {
             let ramparts = creep.room.find(FIND_STRUCTURES, {
@@ -58,7 +58,7 @@ module.exports = {
                     creep.moveTo(Game.getObjectById(creep.memory.deployTargetId));
                 }
                 else {
-                    creep.moveTo(Game.flags.ArcherRally);
+                    creep.moveTo(Game.flags[roomData.roomName + '.ArcherRally']);
                 }
             }
             else {
@@ -68,7 +68,7 @@ module.exports = {
         
         
         if (target) {
-            let status = creep.rangedAttack(target);
+            creep.rangedAttack(target);
         }
     }
 };

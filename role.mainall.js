@@ -1,7 +1,7 @@
 module.exports = {
-    run: function(creep) {
+    run: function(creep, roomData, room) {
         if (creep.ticksToLive < 60) {
-            creep.moveTo(Game.flags.Graveyard, {visualizePathStyle: {stroke: '#ff0000'}});
+            creep.moveTo(Game.flags[roomData.roomName + '.Graveyard'], {visualizePathStyle: {stroke: '#ff0000'}});
             let targets = creep.room.find(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType == STRUCTURE_STORAGE ||

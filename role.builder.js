@@ -1,21 +1,26 @@
 var roleBuilder = {
 
     /** @param {Creep} creep **/
-    run: function(creep) {
+    run: function(creep, roomData, room) {
         if (!creep.memory.state) {
             creep.memory.state = 'staging';
         }
         
         if (creep.memory.state === 'staging') {
-            var pathLen = creep.pos.getRangeTo(Game.flags.BuildFrom);
-            var pathLen2 = creep.pos.getRangeTo(Game.flags.BuildFrom2);
-            if ((pathLen > 2 && pathLen < 20) || (pathLen2 > 2 && pathLen2 < 20)) {
-                
-                creep.moveTo(pathLen < pathLen2 ? Game.flags.BuildFrom : Game.flags.BuildFrom2);    
-                creep.memory.state = 'staging';
+            if (!Game.flags[creep.memory.birthRoom + '.BuildFrom'] && !Game.flags[creep.memory.birthRoom + '.BuildFrom2']) {
+                creep.memory.state = 'building';
             }
             else {
-                creep.memory.state = 'building';
+                var pathLen = creep.pos.getRangeTo(Game.flags[creep.memory.birthRoom + '.BuildFrom']);
+                var pathLen2 = creep.pos.getRangeTo(Game.flags[creep.memory.birthRoom + '.BuildFrom2']);
+                if ((pathLen > 2 && pathLen < 20) || (pathLen2 > 2 && pathLen2 < 20)) {
+                    
+                    creep.moveTo(pathLen < pathLen2 ? Game.flags[creep.memory.birthRoom + '.BuildFrom'] : Game.flags[creep.memory.birthRoom + '.BuildFrom2']);    
+                    creep.memory.state = 'staging';
+                }
+                else {
+                    creep.memory.state = 'building';
+                }
             }
         }
         
@@ -31,6 +36,19 @@ var roleBuilder = {
     	    }
     
     	    if(creep.memory.building) {
+    	        let rampart = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                        filter: (s) => s.structureType === STRUCTURE_RAMPART && s.hits < 10000 && creep.pos.getRangeTo(s) < 10
+                    });
+                    
+                if (rampart) {
+                    console.log('repairing rampart');
+                    var status = creep.repair(rampart);
+                    if (status === ERR_NOT_IN_RANGE) {
+                        creep.moveTo(rampart,  {visualizePathStyle: {stroke: '#ffaa00'}});
+                    }  
+                    return;
+                }
+    	        
     	        var targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
                     filter: (structure) => {
                         return structure.structureType == STRUCTURE_RAMPART;
@@ -68,7 +86,7 @@ var roleBuilder = {
                         }
                     }
                     else {
-                        creep.moveTo(Game.flags.Standby);
+                        creep.moveTo(Game.flags[creep.memory.birthRoom + '.Standby']);
                     }
                 }
     	    }
